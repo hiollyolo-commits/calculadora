@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ANSEP • Analizador Nodal de Redes Eléctricas (Ybus & Zbus)</title>
+  <style>
+    :root {
+      --bg: #00132e;
+      --bg-alt: #001B47;
+      --panel: #002456;
+      --card: #002f6c;
+      --card-hover: #003882;
+      --card-dark: #001d45;
+      --gold: #E2C55A;
+      --gold-hover: #f3d875;
+      --gold-dark: #A88C00;
+      --gold-soft: rgba(226, 197, 90, 0.15);
+      --text: #EAF0FA;
+      --text-muted: #9FB4D3;
+      --border: rgba(226, 197, 90, 0.28);
+      --border-subtle: rgba(159, 180, 211, 0.18);
+      --success: #5FD38D;
+      --danger: #FF7B7B;
+      --danger-hover: #e06060;
+      --info: #58a6ff;
+      --font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-alt);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--card);
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gold-dark);
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(180deg, #001f52 0%, var(--panel) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg);
+      font-weight: 900;
+      font-size: 22px;
+      box-shadow: 0 0 16px rgba(226, 197, 90, 0.35);
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--text);
+    }
+
+    .brand-text h1 span {
+      color: var(--gold);
+    }
+
+    .brand-text p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-family: inherit;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #00132e;
+      box-shadow: 0 2px 8px rgba(226, 197, 90, 0.25);
+    }
+    .btn-gold:hover {
+      background: var(--gold-hover);
+      box-shadow: 0 4px 14px rgba(226, 197, 90, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-success {
+      background: rgba(95, 211, 141, 0.15);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .btn-success:hover {
+      background: var(--success);
+      color: var(--bg);
+    }
+
+    .btn-danger {
+      background: rgba(255, 123, 123, 0.15);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: var(--bg);
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    .btn-block {
+      width: 100%;
+      justify-content: center;
+      padding: 12px;
+      font-size: 1rem;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 20px;
+      padding: 20px 24px;
+      max-width: 1800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Panel: Inputs */
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: 0.3px;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--gold-soft);
+      color: var(--gold);
+      border: 1px solid var(--border);
+    }
+
+    /* Form Fields */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .input-field, .select-field {
+      background: var(--card-dark);
+      border: 1px solid var(--border-subtle);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      padding: 8px 10px;
+      border-radius: 6px;
+      outline: none;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .input-field:focus, .select-field:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold-soft);
+    }
+
+    .input-field::placeholder {
+      color: rgba(159, 180, 211, 0.45);
+    }
+
+    /* Small Tables in Left Panel */
+    .table-container {
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      background: var(--card-dark);
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    th {
+      background: #001a3d;
+      color: var(--gold);
+      padding: 8px 6px;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.75rem;
+    }
+
+    td {
+      padding: 6px;
+      border-bottom: 1px solid rgba(159, 180, 211, 0.08);
+      color: var(--text);
+    }
+
+    tr:hover td {
+      background: rgba(226, 197, 90, 0.05);
+    }
+
+    .text-mono {
+      font-family: var(--font-mono);
+    }
+
+    /* Right Panel: Output and Procedure */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .tabs-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tab-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: var(--card-dark);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--card);
+      color: var(--gold);
+      border-color: var(--border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .tab-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Status Banner */
+    .status-banner {
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .status-banner.ok {
+      background: rgba(95, 211, 141, 0.12);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+
+    .status-banner.bad {
+      background: rgba(255, 123, 123, 0.12);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+
+    /* Styled Matrix Display */
+    .matrices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 16px;
+    }
+
+    .matrix-card {
+      background: var(--panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    .matrix-card h3 {
+      font-size: 0.85rem;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .matrix-bracket-container {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      padding: 6px 14px;
+      margin: 4px 0;
+    }
+
+    .matrix-bracket-container::before,
+    .matrix-bracket-container::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      border: 2px solid var(--gold);
+    }
+
+    .matrix-bracket-container::before {
+      left: 0;
+      border-right: none;
+    }
+
+    .matrix-bracket-container::after {
+      right: 0;
+      border-left: none;
+    }
+
+    .matrix-table {
+      border-collapse: separate;
+      border-spacing: 12px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .matrix-table th {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 2px 6px;
+      font-weight: 600;
+    }
+
+    .matrix-table td {
+      border: none;
+      padding: 4px 8px;
+      background: var(--card-dark);
+      border-radius: 4px;
+      color: var(--text);
+    }
+
+    .matrix-table td.diag {
+      color: var(--gold);
+      border: 1px solid var(--border);
+    }
+
+    /* Procedure Steps */
+    .step-card {
+      background: var(--panel);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--gold);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--bg);
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .step-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .step-content {
+      font-size: 0.85rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .step-math {
+      background: var(--card-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text);
+      overflow-x: auto;
+      margin-top: 6px;
+      white-space: pre-wrap;
+    }
+
+    /* Modal / Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9999;
+    }
+
+    .toast {
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease forwards;
+    }
+
+    .toast-ok {
+      background: #003822;
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+
+    .toast-bad {
+      background: #400d0d;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+
+    .toast-info {
+      background: #002554;
+      border: 1px solid var(--info);
+      color: var(--info);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Print View */
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+      }
+      header, .left-panel, .tab-controls, .btn, .toast-container {
+        display: none !important;
+      }
+      main {
+        display: block;
+        padding: 0;
+      }
+      .tab-content {
+        display: flex !important;
+      }
+      .card, .matrix-card, .step-card {
+        background: #fff;
+        border: 1px solid #ccc;
+        color: #000;
+        box-shadow: none;
+        page-break-inside: avoid;
+      }
+      .matrix-table td {
+        background: #eee;
+        color: #000;
+      }
+      .matrix-bracket-container::before,
+      .matrix-bracket-container::after {
+        border-color: #000;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">
+        <h1>ANSEP <span>• Ybus & Zbus Pro</span></h1>
+        <p>Analizador Nodal de Redes Eléctricas de Potencia (Thévenin, Norton, Flujos y Pérdidas)</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" id="btn-ejemplo-fig2">📖 Ejemplo Examen (Fig. 2)</button>
+      <button class="btn btn-outline" id="btn-ejemplo-pizarron">📐 Ejemplo Pizarrón</button>
+      <button class="btn btn-danger btn-sm" id="btn-limpiar-todo">🗑️ Limpiar Todo</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main>
+    <!-- Left Panel: Data Entry -->
+    <div class="left-panel">
+      
+      <!-- 1. Red Configuration -->
+      <div class="card">
+        <div class="card-title">
+          <span>1. Configuración de la Red</span>
+          <span class="badge" id="badge-nodos">3 Nodos</span>
+        </div>
+        <div class="form-grid" style="grid-template-columns: 1fr auto auto;">
+          <div class="form-group">
+            <label for="num-nodos">Cantidad de Nodos Activos (Ref. 0 = Tierra):</label>
+            <input type="number" id="num-nodos" class="input-field" min="1" max="20" value="3">
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <button class="btn btn-gold" id="btn-aplicar-nodos">Aplicar</button>
+          </div>
+          <div class="form-group" style="justify-content: flex-end;">
+            <button class="btn btn-outline" id="btn-reiniciar-red">Reiniciar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Branches -->
+      <div class="card">
+        <div class="card-title">
+          <span>2. Ramas e Impedancias / Admitancias</span>
+          <span class="badge" id="badge-ramas">0 Ramas</span>
+        </div>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label for="rama-de">De Nodo:</label>
+            <select id="rama-de" class="select-field"></select>
+          </div>
+          <div class="form-group">
+            <label for="rama-a">A Nodo (0 = Tierra):</label>
+            <select id="rama-a" class="select-field"></select>
+          </div>
+        </div>
+        <div class="form-grid" style="grid-template-columns: 110px 1fr;">
+          <div class="form-group">
+            <label for="rama-tipo">Ingresar como:</label>
+            <select id="rama-tipo" class="select-field">
+              <option value="Z">Impedancia Z</option>
+              <option value="Y">Admitancia Y</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="rama-valor">Valor Complejo (ej. .02+j0.04, j0.5, 1.2∠-30):</label>
+            <input type="text" id="rama-valor" class="input-field" placeholder="0.02 + j0.04">
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button class="btn btn-gold btn-sm" id="btn-agregar-rama">➕ Agregar / Guardar Rama</button>
+          <button class="btn btn-outline btn-sm" id="btn-cancelar-edit-rama" style="display:none;">Cancelar Edición</button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>De</th>
+                <th>A</th>
+                <th>Tipo</th>
+                <th>Valor Ingresado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-ramas-body">
+              <tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin ramas registradas.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. Sources (Dual: Voltage or Current) -->
+      <div class="card">
+        <div class="card-title">
+          <span>3. Fuentes: Generadores o Corrientes</span>
+          <span class="badge" id="badge-fuentes">0 Fuentes</span>
+        </div>
+        <div class="form-grid" style="grid-template-columns: 140px 1fr;">
+          <div class="form-group">
+            <label for="fuente-tipo">Tipo de Fuente:</label>
+            <select id="fuente-tipo" class="select-field">
+              <option value="I">Corriente Directa [I]</option>
+              <option value="V">Generador Voltaje (Thévenin)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fuente-nodo">Nodo Conectado:</label>
+            <select id="fuente-nodo" class="select-field"></select>
+          </div>
+        </div>
+
+        <!-- Dynamic source inputs -->
+        <div id="campos-fuente-i" class="form-group">
+          <label for="fuente-i-valor">Corriente Inyectada I (pu) (ej. 1.38-j2.75 o 3.07∠-63.35):</label>
+          <input type="text" id="fuente-i-valor" class="input-field" placeholder="1.38 - j2.75">
+        </div>
+
+        <div id="campos-fuente-v" style="display: none;">
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="form-group">
+              <label for="fuente-v-mag">Tensión |E| (pu):</label>
+              <input type="number" step="any" id="fuente-v-mag" class="input-field" placeholder="1.0" value="1.0">
+            </div>
+            <div class="form-group">
+              <label for="fuente-v-ang">Ángulo ∠ (°):</label>
+              <input type="number" step="any" id="fuente-v-ang" class="input-field" placeholder="0.0" value="0.0">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 6px;">
+            <label for="fuente-v-z">Impedancia Interna Z_int (ej. j1.0 o 0.0+j0.8):</label>
+            <input type="text" id="fuente-v-z" class="input-field" placeholder="0.0 + j1.0">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button class="btn btn-gold btn-sm" id="btn-agregar-fuente">➕ Agregar / Guardar Fuente</button>
+          <button class="btn btn-outline btn-sm" id="btn-cancelar-edit-fuente" style="display:none;">Cancelar Edición</button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Nodo</th>
+                <th>Parámetros</th>
+                <th>Inyección Norton</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-fuentes-body">
+              <tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin fuentes registradas.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button class="btn btn-gold btn-block" id="btn-calcular">
+        ▶ CALCULAR MATRICES Y VOLTAJES
+      </button>
+
+    </div>
+
+    <!-- Right Panel: Procedure & Results -->
+    <div class="right-panel">
+      
+      <!-- Tab Header and Toolbar -->
+      <div class="tabs-header">
+        <div class="tab-buttons">
+          <button class="tab-btn active" data-tab="tab-resultados">Resultados y Matrices</button>
+          <button class="tab-btn" data-tab="tab-procedimiento">Procedimiento Paso a Paso</button>
+        </div>
+        <div class="tab-controls">
+          <select id="formato-num" class="select-field" style="width: auto; padding: 6px 10px;">
+            <option value="rect">Formato: Rectangular</option>
+            <option value="polar">Formato: Polar</option>
+          </select>
+          <button class="btn btn-outline btn-sm" id="btn-copiar">📋 Copiar Reporte</button>
+          <button class="btn btn-outline btn-sm" id="btn-imprimir">🖨️ Imprimir / PDF</button>
+        </div>
+      </div>
+
+      <!-- TAB 1: RESULTADOS -->
+      <div id="tab-resultados" class="tab-content active">
+        
+        <div id="status-container">
+          <div class="status-banner ok" id="status-banner">
+            <span>✓ Sistema listo para resolver. Agrega elementos o carga un ejemplo y pulsa "Calcular".</span>
+          </div>
+        </div>
+
+        <!-- Matrices Ybus y Zbus -->
+        <div class="matrices-grid">
+          <div class="matrix-card">
+            <h3>Matriz de Admitancias Ybus (pu)</h3>
+            <div class="matrix-bracket-container" id="ybus-container">
+              <p style="color:var(--text-muted); font-size:0.85rem;">Presiona "Calcular" para ver la matriz Ybus.</p>
+            </div>
+          </div>
+          <div class="matrix-card">
+            <h3>Matriz de Impedancias Zbus = Ybus⁻¹ (pu)</h3>
+            <div class="matrix-bracket-container" id="zbus-container">
+              <p style="color:var(--text-muted); font-size:0.85rem;">Presiona "Calcular" para ver la matriz Zbus.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Voltajes Nodales -->
+        <div class="card">
+          <div class="card-title">
+            <span>Voltajes Nodales Resultantes [V]</span>
+            <span class="badge">Ecuación: [V] = [Zbus] · [I]</span>
+          </div>
+          <div class="table-container" style="max-height: 250px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nodo</th>
+                  <th>Tensión Rectangular (a + jb pu)</th>
+                  <th>Tensión Polar (|V| ∠ θ°)</th>
+                  <th>Magnitud |V| (pu)</th>
+                  <th>Ángulo δ (grados)</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-voltajes-body">
+                <tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin datos calculados aún.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Flujos de Potencia y Pérdidas -->
+        <div class="card">
+          <div class="card-title">
+            <span>Flujos de Línea, Pérdidas y Corrientes de Rama</span>
+            <span class="badge">S = V · I*</span>
+          </div>
+          <div class="table-container" style="max-height: 280px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rama</th>
+                  <th>Corriente I_ij (pu)</th>
+                  <th>Flujo S_ij (pu / MVA)</th>
+                  <th>Flujo S_ji (pu / MVA)</th>
+                  <th>Pérdidas Totales (P_loss + j Q_loss)</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-flujos-body">
+                <tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin flujos calculados aún.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: PROCEDIMIENTO PASO A PASO -->
+      <div id="tab-procedimiento" class="tab-content">
+        <div id="procedimiento-container" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-num">!</div>
+              <div class="step-title">Esperando Ejecución</div>
+            </div>
+            <div class="step-content">
+              Configura las ramas y fuentes de tu circuito y pulsa el botón <strong>"▶ CALCULAR MATRICES Y VOLTAJES"</strong> para desplegar la memoria detallada de cálculo matemático paso a paso.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    /* ==========================================================================
+       CLASE COMPLETA DE ARITMÉTICA COMPLEJA
+       ========================================================================== */
+    class Complex {
+      constructor(re = 0, im = 0) {
+        this.re = Number(re) || 0;
+        this.im = Number(im) || 0;
+      }
+
+      static polar(r, deg) {
+        const rad = (deg * Math.PI) / 180;
+        return new Complex(r * Math.cos(rad), r * Math.sin(rad));
+      }
+
+      add(c) {
+        return new Complex(this.re + c.re, this.im + c.im);
+      }
+
+      sub(c) {
+        return new Complex(this.re - c.re, this.im - c.im);
+      }
+
+      mul(c) {
+        return new Complex(
+          this.re * c.re - this.im * c.im,
+          this.re * c.im + this.im * c.re
+        );
+      }
+
+      div(c) {
+        const d = c.re * c.re + c.im * c.im;
+        if (Math.abs(d) < 1e-18) throw new Error("División entre cero en aritmética compleja");
+        return new Complex(
+          (this.re * c.re + this.im * c.im) / d,
+          (this.im * c.re - this.re * c.im) / d
+        );
+      }
+
+      inv() {
+        return new Complex(1, 0).div(this);
+      }
+
+      conj() {
+        return new Complex(this.re, -this.im);
+      }
+
+      mag() {
+        return Math.hypot(this.re, this.im);
+      }
+
+      angRad() {
+        return Math.atan2(this.im, this.re);
+      }
+
+      angDeg() {
+        return (this.angRad() * 180) / Math.PI;
+      }
+
+      formatRect(d = 4) {
+        const re = Math.abs(this.re) < 1e-12 ? 0 : this.re;
+        const im = Math.abs(this.im) < 1e-12 ? 0 : this.im;
+        const sign = im >= 0 ? "+" : "−";
+        return `${re.toFixed(d)} ${sign} j${Math.abs(im).toFixed(d)}`;
+      }
+
+      formatPolar(d = 4, da = 2) {
+        const m = this.mag();
+        let a = this.angDeg();
+        if (m < 1e-12) a = 0;
+        return `${m.toFixed(d)} ∠ ${a.toFixed(da)}°`;
+      }
+
+      /* Parser ultra flexible de cadenas complejas */
+      static parse(str) {
+        if (!str || typeof str !== "string") return new Complex(0, 0);
+        let s = str.trim().replace(/\s+/g, "");
+
+        // Formato Polar: ej. "1.5384<26.65" o "1.525∠-63.1"
+        if (s.includes("<") || s.includes("∠")) {
+          const parts = s.split(/[<∠]/);
+          const r = parseFloat(parts[0]);
+          const ang = parseFloat(parts[1]);
+          if (isNaN(r) || isNaN(ang)) throw new Error(`Formato polar inválido: "${str}"`);
+          return Complex.polar(r, ang);
+        }
+
+        // Formato Rectangular con "j" o "i"
+        s = s.replace(/i/g, "j");
+        
+        // Casos puros imaginarios: ej. "j0.5", "-j1", "+j.02", "j"
+        if (/^[+-]?j[\d.]*$/.test(s)) {
+          let numStr = s.replace("j", "");
+          if (numStr === "" || numStr === "+") numStr = "1";
+          if (numStr === "-") numStr = "-1";
+          const im = parseFloat(numStr);
+          if (isNaN(im)) throw new Error(`Imaginario inválido: "${str}"`);
+          return new Complex(0, im);
+        }
+
+        // Casos con 'j' al final: ej. "0.04j", "-2.75j"
+        if (/^[+-]?[\d.]+j$/.test(s)) {
+          const im = parseFloat(s.replace("j", ""));
+          return new Complex(0, isNaN(im) ? 0 : im);
+        }
+
+        // Si no tiene j, es número real puro
+        if (!s.includes("j")) {
+          const re = parseFloat(s);
+          if (isNaN(re)) throw new Error(`Número real inválido: "${str}"`);
+          return new Complex(re, 0);
+        }
+
+        // Complejo con parte real e imaginaria: ej. "0.02+j0.04", "-10+j20", "1.38-2.75j"
+        // Normalizar 'j' antes o después del número
+        let re = 0, im = 0;
+        // Reemplazar patrones "+j12" o "-j12" por "+12j" o "-12j"
+        let norm = s.replace(/([+-])j([\d.]+)/g, "$1$2j").replace(/^j([\d.]+)/, "$1j");
+        
+        const regex = /([+-]?[\d.]+)/g;
+        const matches = s.match(/[+-]?[^+-]+/g);
+
+        if (matches) {
+          for (let m of matches) {
+            if (m.includes("j")) {
+              let clean = m.replace("j", "");
+              if (clean === "" || clean === "+") clean = "1";
+              if (clean === "-") clean = "-1";
+              im += parseFloat(clean);
+            } else {
+              re += parseFloat(m);
+            }
+          }
+          if (isNaN(re) || isNaN(im)) throw new Error(`Formato complejo irreconocible: "${str}"`);
+          return new Complex(re, im);
+        }
+
+        throw new Error(`Cadena compleja inválida: "${str}"`);
+      }
+    }
+
+    /* ==========================================================================
+       ESTADO GLOBAL DE LA APLICACIÓN
+       ========================================================================== */
+    const State = {
+      numNodos: 3,
+      ramas: [],    // { id, de, a, tipo, valorStr, Z, Y }
+      fuentes: [],  // { id, tipo, nodo, iStr, vMag, vAng, zStr, E, Zint, In, yg }
+      resultados: null,
+      editingRamaId: null,
+      editingFuenteId: null,
+      formatoVisual: "rect"
+    };
+
+    /* ==========================================================================
+       HELPERS DE INTERFAZ Y NOTIFICACIONES
+       ========================================================================== */
+    function showToast(msg, type = "info") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = `toast toast-${type}`;
+      const icon = type === "ok" ? "✓" : type === "bad" ? "⚠" : "ℹ";
+      toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(100%)";
+        toast.style.transition = "all 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function actualizarSelectoresNodos() {
+      const deSel = document.getElementById("rama-de");
+      const aSel = document.getElementById("rama-a");
+      const fNodoSel = document.getElementById("fuente-nodo");
+
+      const currDe = deSel.value;
+      const currA = aSel.value;
+      const currFN = fNodoSel.value;
+
+      deSel.innerHTML = "";
+      aSel.innerHTML = '<option value="0">0 (Tierra / Ref)</option>';
+      fNodoSel.innerHTML = "";
+
+      for (let i = 1; i <= State.numNodos; i++) {
+        deSel.innerHTML += `<option value="${i}">Nodo ${i}</option>`;
+        aSel.innerHTML += `<option value="${i}">Nodo ${i}</option>`;
+        fNodoSel.innerHTML += `<option value="${i}">Nodo ${i}</option>`;
+      }
+
+      if (currDe && deSel.querySelector(`option[value="${currDe}"]`)) deSel.value = currDe;
+      if (currA && aSel.querySelector(`option[value="${currA}"]`)) aSel.value = currA;
+      if (currFN && fNodoSel.querySelector(`option[value="${currFN}"]`)) fNodoSel.value = currFN;
+
+      document.getElementById("badge-nodos").innerText = `${State.numNodos} Nodos`;
+    }
+
+    /* ==========================================================================
+       GESTIÓN DE RAMAS
+       ========================================================================== */
+    function renderRamas() {
+      const tbody = document.getElementById("tabla-ramas-body");
+      document.getElementById("badge-ramas").innerText = `${State.ramas.length} Ramas`;
+
+      if (State.ramas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin ramas registradas.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = State.ramas.map(r => `
+        <tr>
+          <td><span class="badge">N${r.de}</span></td>
+          <td><span class="badge">${r.a === 0 ? "0 (Tierra)" : "N" + r.a}</span></td>
+          <td>${r.tipo}</td>
+          <td class="text-mono" style="color:var(--gold);">${r.valorStr}</td>
+          <td>
+            <button class="btn btn-outline btn-sm" onclick="editarRama(${r.id})">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarRama(${r.id})">✕</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function agregarRama() {
+      try {
+        const de = parseInt(document.getElementById("rama-de").value);
+        const a = parseInt(document.getElementById("rama-a").value);
+        const tipo = document.getElementById("rama-tipo").value;
+        const valStr = document.getElementById("rama-valor").value.trim();
+
+        if (de === a) {
+          showToast("El nodo de origen y destino no pueden ser iguales.", "bad");
+          return;
+        }
+        if (!valStr) {
+          showToast("Ingresa el valor complejo de la rama.", "bad");
+          return;
+        }
+
+        const comp = Complex.parse(valStr);
+        if (comp.mag() < 1e-12) {
+          showToast("La impedancia o admitancia no puede ser 0.", "bad");
+          return;
+        }
+
+        let Z, Y;
+        if (tipo === "Z") {
+          Z = comp;
+          Y = comp.inv();
+        } else {
+          Y = comp;
+          Z = comp.inv();
+        }
+
+        if (State.editingRamaId !== null) {
+          const idx = State.ramas.findIndex(r => r.id === State.editingRamaId);
+          if (idx !== -1) {
+            State.ramas[idx] = { id: State.editingRamaId, de, a, tipo, valorStr: valStr, Z, Y };
+            showToast("Rama actualizada correctamente.", "ok");
+          }
+          State.editingRamaId = null;
+          document.getElementById("btn-cancelar-edit-rama").style.display = "none";
+          document.getElementById("btn-agregar-rama").innerText = "➕ Agregar Rama";
+        } else {
+          State.ramas.push({ id: Date.now() + Math.random(), de, a, tipo, valorStr: valStr, Z, Y });
+          showToast("Rama agregada con éxito.", "ok");
+        }
+
+        document.getElementById("rama-valor").value = "";
+        renderRamas();
+      } catch (err) {
+        showToast("Error en valor de rama: " + err.message, "bad");
+      }
+    }
+
+    function editarRama(id) {
+      const r = State.ramas.find(x => x.id === id);
+      if (!r) return;
+      State.editingRamaId = id;
+      document.getElementById("rama-de").value = r.de;
+      document.getElementById("rama-a").value = r.a;
+      document.getElementById("rama-tipo").value = r.tipo;
+      document.getElementById("rama-valor").value = r.valorStr;
+      document.getElementById("btn-agregar-rama").innerText = "💾 Guardar Cambios";
+      document.getElementById("btn-cancelar-edit-rama").style.display = "inline-flex";
+    }
+
+    function eliminarRama(id) {
+      State.ramas = State.ramas.filter(r => r.id !== id);
+      if (State.editingRamaId === id) {
+        State.editingRamaId = null;
+        document.getElementById("btn-cancelar-edit-rama").style.display = "none";
+        document.getElementById("btn-agregar-rama").innerText = "➕ Agregar Rama";
+      }
+      renderRamas();
+      showToast("Rama eliminada.", "info");
+    }
+
+    /* ==========================================================================
+       GESTIÓN DE FUENTES (Voltaje Thévenin y Corriente Directa)
+       ========================================================================== */
+    function renderFuentes() {
+      const tbody = document.getElementById("tabla-fuentes-body");
+      document.getElementById("badge-fuentes").innerText = `${State.fuentes.length} Fuentes`;
+
+      if (State.fuentes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin fuentes registradas.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = State.fuentes.map(f => {
+        let paramTxt = "";
+        let nortonTxt = "";
+        if (f.tipo === "I") {
+          paramTxt = `I = ${f.iStr}`;
+          nortonTxt = `${f.In.formatPolar(3)}`;
+        } else {
+          paramTxt = `E = ${f.vMag}∠${f.vAng}°, Zint = ${f.zStr}`;
+          nortonTxt = `In = ${f.In.formatPolar(3)}`;
+        }
+
+        return `
+          <tr>
+            <td><span class="badge">${f.tipo === "I" ? "Corriente [I]" : "Voltaje (Thév)"}</span></td>
+            <td><span class="badge">N${f.nodo}</span></td>
+            <td class="text-mono" style="font-size:0.75rem;">${paramTxt}</td>
+            <td class="text-mono" style="color:var(--gold);">${nortonTxt}</td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="editarFuente(${f.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminarFuente(${f.id})">✕</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function agregarFuente() {
+      try {
+        const tipo = document.getElementById("fuente-tipo").value;
+        const nodo = parseInt(document.getElementById("fuente-nodo").value);
+
+        let In, yg, iStr = "", vMag = 0, vAng = 0, zStr = "", E = null, Zint = null;
+
+        if (tipo === "I") {
+          iStr = document.getElementById("fuente-i-valor").value.trim();
+          if (!iStr) {
+            showToast("Introduce el valor de la corriente inyectada.", "bad");
+            return;
+          }
+          In = Complex.parse(iStr);
+          yg = new Complex(0, 0); // No agrega admitancia interna adicional
+        } else {
+          vMag = parseFloat(document.getElementById("fuente-v-mag").value);
+          vAng = parseFloat(document.getElementById("fuente-v-ang").value) || 0;
+          zStr = document.getElementById("fuente-v-z").value.trim();
+
+          if (isNaN(vMag)) {
+            showToast("Introduce una magnitud de tensión válida.", "bad");
+            return;
+          }
+          if (!zStr) {
+            showToast("Introduce la impedancia interna Z_int.", "bad");
+            return;
+          }
+
+          E = Complex.polar(vMag, vAng);
+          Zint = Complex.parse(zStr);
+          if (Zint.mag() < 1e-12) {
+            showToast("La impedancia interna de la fuente no puede ser 0.", "bad");
+            return;
+          }
+
+          yg = Zint.inv();
+          In = E.div(Zint);
+        }
+
+        if (State.editingFuenteId !== null) {
+          const idx = State.fuentes.findIndex(f => f.id === State.editingFuenteId);
+          if (idx !== -1) {
+            State.fuentes[idx] = { id: State.editingFuenteId, tipo, nodo, iStr, vMag, vAng, zStr, E, Zint, In, yg };
+            showToast("Fuente actualizada.", "ok");
+          }
+          State.editingFuenteId = null;
+          document.getElementById("btn-cancelar-edit-fuente").style.display = "none";
+          document.getElementById("btn-agregar-fuente").innerText = "➕ Agregar Fuente";
+        } else {
+          State.fuentes.push({ id: Date.now() + Math.random(), tipo, nodo, iStr, vMag, vAng, zStr, E, Zint, In, yg });
+          showToast("Fuente agregada con éxito.", "ok");
+        }
+
+        document.getElementById("fuente-i-valor").value = "";
+        renderFuentes();
+      } catch (err) {
+        showToast("Error en fuente: " + err.message, "bad");
+      }
+    }
+
+    function editarFuente(id) {
+      const f = State.fuentes.find(x => x.id === id);
+      if (!f) return;
+      State.editingFuenteId = id;
+      document.getElementById("fuente-tipo").value = f.tipo;
+      toggleCamposFuente();
+      document.getElementById("fuente-nodo").value = f.nodo;
+
+      if (f.tipo === "I") {
+        document.getElementById("fuente-i-valor").value = f.iStr;
+      } else {
+        document.getElementById("fuente-v-mag").value = f.vMag;
+        document.getElementById("fuente-v-ang").value = f.vAng;
+        document.getElementById("fuente-v-z").value = f.zStr;
+      }
+
+      document.getElementById("btn-agregar-fuente").innerText = "💾 Guardar Cambios";
+      document.getElementById("btn-cancelar-edit-fuente").style.display = "inline-flex";
+    }
+
+    function eliminarFuente(id) {
+      State.fuentes = State.fuentes.filter(f => f.id !== id);
+      if (State.editingFuenteId === id) {
+        State.editingFuenteId = null;
+        document.getElementById("btn-cancelar-edit-fuente").style.display = "none";
+        document.getElementById("btn-agregar-fuente").innerText = "➕ Agregar Fuente";
+      }
+      renderFuentes();
+      showToast("Fuente eliminada.", "info");
+    }
+
+    function toggleCamposFuente() {
+      const tipo = document.getElementById("fuente-tipo").value;
+      if (tipo === "I") {
+        document.getElementById("campos-fuente-i").style.display = "flex";
+        document.getElementById("campos-fuente-v").style.display = "none";
+      } else {
+        document.getElementById("campos-fuente-i").style.display = "none";
+        document.getElementById("campos-fuente-v").style.display = "block";
+      }
+    }
+
+    /* ==========================================================================
+       MOTOR MATEMÁTICO: YBUS, GAUSS-JORDAN (ZBUS), VOLTAJES Y FLUJOS
+       ========================================================================== */
+    function resolverSistema() {
+      if (State.ramas.length === 0 && State.fuentes.length === 0) {
+        showToast("Agrega al menos una rama o fuente para resolver.", "bad");
+        return;
+      }
+
+      const N = State.numNodos;
+      const procedimiento = [];
+
+      try {
+        // Paso 1: Topología
+        procedimiento.push({
+          num: 1,
+          title: "Identificación de Nodos y Topología",
+          desc: `La red contiene <strong>N = ${N}</strong> nodos activos (el nodo 0 actúa como la referencia de potencial / tierra). Por consiguiente, las matrices de admitancia e impedancia nodal tendrán dimensiones de <strong>${N} × ${N}</strong>.`
+        });
+
+        // Paso 2: Conversiones Norton y Vector de Corrientes
+        const Ibus = Array.from({ length: N }, () => new Complex(0, 0));
+        const Yg_diag = Array.from({ length: N }, () => new Complex(0, 0));
+        const detallesFuentes = [];
+
+        State.fuentes.forEach(f => {
+          const idx = f.nodo - 1;
+          Ibus[idx] = Ibus[idx].add(f.In);
+          Yg_diag[idx] = Yg_diag[idx].add(f.yg);
+
+          if (f.tipo === "V") {
+            detallesFuentes.push(`• Nodo ${f.nodo} (Generador Thévenin): E = ${f.vMag}∠${f.vAng}° pu, Z_int = ${f.Zint.formatRect(4)} pu\n  yg = 1 / Z_int = ${f.yg.formatRect(4)} S\n  In = E / Z_int = ${f.In.formatRect(4)} pu = ${f.In.formatPolar(4)}`);
+          } else {
+            detallesFuentes.push(`• Nodo ${f.nodo} (Inyección de Corriente Directa):\n  In = ${f.In.formatRect(4)} pu = ${f.In.formatPolar(4)}`);
+          }
+        });
+
+        procedimiento.push({
+          num: 2,
+          title: "Inyecciones de Corriente y Conversión Thévenin-Norton",
+          desc: "Cada generador de voltaje en serie con su impedancia se transforma a su equivalente Norton en paralelo. Las fuentes de corriente directa se suman directamente al vector [I]:",
+          math: detallesFuentes.length > 0 ? detallesFuentes.join("\n\n") : "No hay fuentes conectadas en el sistema (I_bus = [0])."
+        });
+
+        // Paso 3: Admitancias de Rama
+        const Ybus = Array.from({ length: N }, () => Array.from({ length: N }, () => new Complex(0, 0)));
+        const diag_expr = Array.from({ length: N }, () => []);
+        const mut_expr = {};
+        const detallesRamas = [];
+
+        State.ramas.forEach(r => {
+          detallesRamas.push(`• Rama (${r.de} → ${r.a}): Z = ${r.Z.formatRect(4)} pu  ==>  y = 1/Z = ${r.Y.formatRect(4)} S`);
+
+          if (r.de > 0 && r.a > 0) {
+            const i = r.de - 1;
+            const j = r.a - 1;
+            Ybus[i][i] = Ybus[i][i].add(r.Y);
+            Ybus[j][j] = Ybus[j][j].add(r.Y);
+            Ybus[i][j] = Ybus[i][j].sub(r.Y);
+            Ybus[j][i] = Ybus[j][i].sub(r.Y);
+
+            diag_expr[i].push(`y_${r.de}_${r.a}`);
+            diag_expr[j].push(`y_${r.de}_${r.a}`);
+            const key = `${Math.min(i, j)}_${Math.max(i, j)}`;
+            mut_expr[key] = `−(y_${r.de}_${r.a})`;
+          } else {
+            // Conexión a tierra
+            const nodoActivo = r.de > 0 ? r.de : r.a;
+            const i = nodoActivo - 1;
+            Ybus[i][i] = Ybus[i][i].add(r.Y);
+            diag_expr[i].push(`y_${nodoActivo}0`);
+          }
+        });
+
+        procedimiento.push({
+          num: 3,
+          title: "Cálculo de Admitancias Primitivas de Rama",
+          desc: "Cada impedancia física se convierte en admitancia mediante el inverso complejo y = 1 / Z:",
+          math: detallesRamas.join("\n")
+        });
+
+        // Sumar admitancia de generadores a la diagonal
+        for (let i = 0; i < N; i++) {
+          if (Yg_diag[i].mag() > 1e-12) {
+            Ybus[i][i] = Ybus[i][i].add(Yg_diag[i]);
+            diag_expr[i].push(`yg_${i + 1}`);
+          }
+        }
+
+        // Paso 4: Ensamblado Ybus
+        const exprYbus = [];
+        for (let i = 0; i < N; i++) {
+          exprYbus.push(`Y_${i+1}_${i+1} = [${diag_expr[i].join(" + ") || "0"}] = ${Ybus[i][i].formatRect(4)} S`);
+        }
+        for (let i = 0; i < N; i++) {
+          for (let j = i + 1; j < N; j++) {
+            exprYbus.push(`Y_${i+1}_${j+1} = Y_${j+1}_${i+1} = ${Ybus[i][j].formatRect(4)} S`);
+          }
+        }
+
+        procedimiento.push({
+          num: 4,
+          title: "Ensamblado Sistemático de la Matriz Ybus",
+          desc: "Reglas de ensamblado: Diagonales Y_ii = suma de todas las admitancias incidentes al nodo i; Fuera de diagonal Y_ij = negativo de la admitancia directa entre i y j:",
+          math: exprYbus.join("\n")
+        });
+
+        // Paso 5: Inversión de Matriz por Gauss-Jordan con Pivoteo Parcial
+        const M = Array.from({ length: N }, (row, i) => [
+          ...Ybus[i].map(c => new Complex(c.re, c.im)),
+          ...Array.from({ length: N }, (_, j) => new Complex(i === j ? 1 : 0, 0))
+        ]);
+
+        const pasosGJ = [];
+
+        for (let i = 0; i < N; i++) {
+          // Pivoteo parcial por magnitud máxima
+          let maxRow = i;
+          let maxVal = M[i][i].mag();
+          for (let k = i + 1; k < N; k++) {
+            const mag = M[k][i].mag();
+            if (mag > maxVal) {
+              maxVal = mag;
+              maxRow = k;
+            }
+          }
+
+          if (maxVal < 1e-12) {
+            throw new Error(`Matriz Ybus singular. El nodo ${i + 1} no tiene referencia o trayectoria a tierra.`);
+          }
+
+          if (maxRow !== i) {
+            const temp = M[i];
+            M[i] = M[maxRow];
+            M[maxRow] = temp;
+            pasosGJ.push(`• Intercambio de fila ${i + 1} con fila ${maxRow + 1} por pivoteo parcial.`);
+          }
+
+          const pivot = M[i][i];
+          pasosGJ.push(`• Paso de pivote ${i + 1}: se normaliza fila ${i + 1} dividiendo entre pivote = ${pivot.formatRect(4)}`);
+
+          for (let col = 0; col < 2 * N; col++) {
+            M[i][col] = M[i][col].div(pivot);
+          }
+
+          for (let row = 0; row < N; row++) {
+            if (row !== i) {
+              const factor = M[row][i];
+              if (factor.mag() > 1e-12) {
+                for (let col = 0; col < 2 * N; col++) {
+                  M[row][col] = M[row][col].sub(factor.mul(M[i][col]));
+                }
+              }
+            }
+          }
+        }
+
+        const Zbus = Array.from({ length: N }, (_, i) => M[i].slice(N));
+
+        procedimiento.push({
+          num: 5,
+          title: "Inversión Matricial por Eliminación de Gauss-Jordan (Zbus = Ybus⁻¹)",
+          desc: "Se construye la matriz aumentada [Ybus | I] y se aplican operaciones elementales de fila hasta obtener [I | Zbus]:",
+          math: pasosGJ.join("\n")
+        });
+
+        // Paso 6: Voltajes Nodales [V] = [Zbus] * [I]
+        const V = Array.from({ length: N }, () => new Complex(0, 0));
+        const calcVoltajes = [];
+
+        for (let i = 0; i < N; i++) {
+          let suma = new Complex(0, 0);
+          const terminos = [];
+          for (let j = 0; j < N; j++) {
+            const term = Zbus[i][j].mul(Ibus[j]);
+            suma = suma.add(term);
+            terminos.push(`Z_${i+1}_${j+1}·I_${j+1}`);
+          }
+          V[i] = suma;
+          calcVoltajes.push(`V_${i+1} = ${terminos.join(" + ")}\n     = ${V[i].formatRect(5)} pu  =  ${V[i].formatPolar(5)} pu`);
+        }
+
+        procedimiento.push({
+          num: 6,
+          title: "Solución de Voltajes Nodales Fasoriales",
+          desc: "Multiplicación matricial [V] = [Zbus] · [Ibus]:",
+          math: calcVoltajes.join("\n\n")
+        });
+
+        // Paso 7: Comprobación de Residuo y Flujos
+        let maxResiduo = 0;
+        for (let i = 0; i < N; i++) {
+          let I_calc = new Complex(0, 0);
+          for (let j = 0; j < N; j++) {
+            I_calc = I_calc.add(Ybus[i][j].mul(V[j]));
+          }
+          const diff = I_calc.sub(Ibus[i]).mag();
+          if (diff > maxResiduo) maxResiduo = diff;
+        }
+
+        const flujos = [];
+        State.ramas.forEach(r => {
+          const Vi = r.de > 0 ? V[r.de - 1] : new Complex(0, 0);
+          const Vj = r.a > 0 ? V[r.a - 1] : new Complex(0, 0);
+
+          const Iij = r.Y.mul(Vi.sub(Vj));
+          const Iji = r.Y.mul(Vj.sub(Vi));
+
+          const Sij = Vi.mul(Iij.conj());
+          const Sji = Vj.mul(Iji.conj());
+          const Ploss = Sij.add(Sji);
+
+          flujos.push({
+            de: r.de,
+            a: r.a,
+            Iij,
+            Iji,
+            Sij,
+            Sji,
+            Ploss
+          });
+        });
+
+        procedimiento.push({
+          num: 7,
+          title: "Comprobación del Residuo de Corrientes y Balance de Potencias",
+          desc: `La verificación numérica de la ley de Ohm nodal arroja un residuo máximo de <strong>|Y·V − I| = ${maxResiduo.toExponential(3)}</strong>, confirmando la exactitud analítica de la solución.`,
+          math: flujos.map(f => `• Rama (${f.de} → ${f.a}):\n  I_${f.de}_${f.a} = ${f.Iij.formatPolar(4)} pu\n  S_${f.de}_${f.a} = ${f.Sij.formatRect(4)} pu\n  S_${f.a}_${f.de} = ${f.Sji.formatRect(4)} pu\n  Pérdidas = ${f.Ploss.formatRect(4)} pu`).join("\n\n")
+        });
+
+        State.resultados = {
+          N,
+          Ybus,
+          Zbus,
+          Ibus,
+          V,
+          maxResiduo,
+          flujos,
+          procedimiento
+        };
+
+        renderResultados();
+        showToast("¡Sistema resuelto exitosamente!", "ok");
+
+      } catch (err) {
+        showToast("Error al resolver sistema: " + err.message, "bad");
+        const sb = document.getElementById("status-banner");
+        sb.className = "status-banner bad";
+        sb.innerHTML = `<span>⚠ Error en el cálculo: ${err.message}</span>`;
+      }
+    }
+
+    /* ==========================================================================
+       RENDERIZADO DE RESULTADOS EN PANTALLA
+       ========================================================================== */
+    function renderResultados() {
+      if (!State.resultados) return;
+      const { N, Ybus, Zbus, V, maxResiduo, flujos, procedimiento } = State.resultados;
+      const fmt = State.formatoVisual;
+
+      // Status Banner
+      const sb = document.getElementById("status-banner");
+      const ok = maxResiduo < 1e-6;
+      sb.className = `status-banner ${ok ? "ok" : "bad"}`;
+      sb.innerHTML = `
+        <span>${ok ? "✓" : "⚠"} Sistema calculado correctamente</span>
+        <span style="font-family:var(--font-mono); font-size:0.8rem;">Residuo máx |Y·V − I| = ${maxResiduo.toExponential(2)}</span>
+      `;
+
+      // Render Matrix Table Helper
+      function buildMatrixHTML(M, labelPrefix = "N") {
+        let html = '<table class="matrix-table"><thead><tr><th></th>';
+        for (let j = 1; j <= N; j++) {
+          html += `<th>${labelPrefix}${j}</th>`;
+        }
+        html += '</tr></thead><tbody>';
+
+        for (let i = 0; i < N; i++) {
+          html += `<tr><th>${labelPrefix}${i + 1}</th>`;
+          for (let j = 0; j < N; j++) {
+            const isDiag = i === j;
+            const valStr = fmt === "polar" ? M[i][j].formatPolar(3, 1) : M[i][j].formatRect(3);
+            html += `<td class="${isDiag ? 'diag' : ''}">${valStr}</td>`;
+          }
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+        return html;
+      }
+
+      document.getElementById("ybus-container").innerHTML = buildMatrixHTML(Ybus);
+      document.getElementById("zbus-container").innerHTML = buildMatrixHTML(Zbus);
+
+      // Tabla de Voltajes
+      const tvBody = document.getElementById("tabla-voltajes-body");
+      tvBody.innerHTML = V.map((v, i) => `
+        <tr>
+          <td><span class="badge" style="font-size:0.85rem;">Nodo ${i + 1}</span></td>
+          <td class="text-mono" style="color:var(--gold); font-weight:700;">${v.formatRect(5)}</td>
+          <td class="text-mono" style="color:var(--success); font-weight:700;">${v.formatPolar(5, 4)}</td>
+          <td class="text-mono">${v.mag().toFixed(5)}</td>
+          <td class="text-mono">${v.angDeg().toFixed(4)}°</td>
+        </tr>
+      `).join("");
+
+      // Tabla de Flujos
+      const tfBody = document.getElementById("tabla-flujos-body");
+      tfBody.innerHTML = flujos.map(f => `
+        <tr>
+          <td><span class="badge">N${f.de} ➔ ${f.a === 0 ? "Tierra" : "N" + f.a}</span></td>
+          <td class="text-mono">${f.Iij.formatPolar(4, 2)}</td>
+          <td class="text-mono" style="color:var(--info);">${f.Sij.formatRect(4)}</td>
+          <td class="text-mono">${f.Sji.formatRect(4)}</td>
+          <td class="text-mono" style="color:var(--gold);">${f.Ploss.formatRect(4)}</td>
+        </tr>
+      `).join("");
+
+      // Render Procedimiento
+      const procContainer = document.getElementById("procedimiento-container");
+      procContainer.innerHTML = procedimiento.map(step => `
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num">${step.num}</div>
+            <div class="step-title">${step.title}</div>
+          </div>
+          <div class="step-content">${step.desc}</div>
+          ${step.math ? `<div class="step-math">${step.math}</div>` : ""}
+        </div>
+      `).join("");
+    }
+
+    /* ==========================================================================
+       EJEMPLOS PRECARGADOS (Figura 2 y Pizarrón)
+       ========================================================================== */
+    function cargarEjemploFig2() {
+      State.numNodos = 3;
+      document.getElementById("num-nodos").value = 3;
+      actualizarSelectoresNodos();
+
+      State.ramas = [
+        { id: 1, de: 1, a: 2, tipo: "Z", valorStr: "0.02+j0.04", Z: new Complex(0.02, 0.04), Y: new Complex(0.02, 0.04).inv() },
+        { id: 2, de: 1, a: 3, tipo: "Z", valorStr: "0.01+j0.03", Z: new Complex(0.01, 0.03), Y: new Complex(0.01, 0.03).inv() },
+        { id: 3, de: 2, a: 3, tipo: "Z", valorStr: "0.0125+j0.025", Z: new Complex(0.0125, 0.025), Y: new Complex(0.0125, 0.025).inv() },
+        { id: 4, de: 3, a: 0, tipo: "Z", valorStr: "0.4+j0.2", Z: new Complex(0.4, 0.2), Y: new Complex(0.4, 0.2).inv() },
+        { id: 5, de: 1, a: 0, tipo: "Z", valorStr: "j0.5", Z: new Complex(0, 0.5), Y: new Complex(0, 0.5).inv() },
+        { id: 6, de: 2, a: 0, tipo: "Z", valorStr: "j1.0", Z: new Complex(0, 1.0), Y: new Complex(0, 1.0).inv() }
+      ];
+
+      State.fuentes = [
+        { id: 101, tipo: "I", nodo: 1, iStr: "1.38-j2.75", vMag: 0, vAng: 0, zStr: "", E: null, Zint: null, In: new Complex(1.38, -2.75), yg: new Complex(0, 0) },
+        { id: 102, tipo: "I", nodo: 2, iStr: "0.69-j1.36", vMag: 0, vAng: 0, zStr: "", E: null, Zint: null, In: new Complex(0.69, -1.36), yg: new Complex(0, 0) }
+      ];
+
+      renderRamas();
+      renderFuentes();
+      resolverSistema();
+      showToast("Ejemplo Examen (Fig. 2) cargado y calculado.", "ok");
+    }
+
+    function cargarEjemploPizarron() {
+      State.numNodos = 3;
+      document.getElementById("num-nodos").value = 3;
+      actualizarSelectoresNodos();
+
+      State.ramas = [
+        { id: 1, de: 1, a: 2, tipo: "Z", valorStr: "j0.4", Z: new Complex(0, 0.4), Y: new Complex(0, 0.4).inv() },
+        { id: 2, de: 1, a: 3, tipo: "Z", valorStr: "j0.2", Z: new Complex(0, 0.2), Y: new Complex(0, 0.2).inv() },
+        { id: 3, de: 2, a: 3, tipo: "Z", valorStr: "j0.2", Z: new Complex(0, 0.2), Y: new Complex(0, 0.2).inv() },
+        { id: 4, de: 3, a: 0, tipo: "Z", valorStr: "j0.08", Z: new Complex(0, 0.08), Y: new Complex(0, 0.08).inv() }
+      ];
+
+      const E1 = Complex.polar(1.0, 0.0);
+      const Zg1 = new Complex(0, 1.0);
+      const E2 = Complex.polar(0.8, 20.0);
+      const Zg2 = new Complex(0, 0.8);
+
+      State.fuentes = [
+        { id: 201, tipo: "V", nodo: 1, iStr: "", vMag: 1.0, vAng: 0.0, zStr: "j1.0", E: E1, Zint: Zg1, In: E1.div(Zg1), yg: Zg1.inv() },
+        { id: 202, tipo: "V", nodo: 2, iStr: "", vMag: 0.8, vAng: 20.0, zStr: "j0.8", E: E2, Zint: Zg2, In: E2.div(Zg2), yg: Zg2.inv() }
+      ];
+
+      renderRamas();
+      renderFuentes();
+      resolverSistema();
+      showToast("Ejemplo Pizarrón (Thévenin) cargado y calculado.", "ok");
+    }
+
+    function limpiarTodo() {
+      State.ramas = [];
+      State.fuentes = [];
+      State.resultados = null;
+      State.editingRamaId = null;
+      State.editingFuenteId = null;
+
+      document.getElementById("btn-cancelar-edit-rama").style.display = "none";
+      document.getElementById("btn-cancelar-edit-fuente").style.display = "none";
+      document.getElementById("btn-agregar-rama").innerText = "➕ Agregar Rama";
+      document.getElementById("btn-agregar-fuente").innerText = "➕ Agregar Fuente";
+
+      renderRamas();
+      renderFuentes();
+
+      document.getElementById("ybus-container").innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">Presiona "Calcular" para ver la matriz Ybus.</p>';
+      document.getElementById("zbus-container").innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">Presiona "Calcular" para ver la matriz Zbus.</p>';
+      document.getElementById("tabla-voltajes-body").innerHTML = '<tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin datos calculados aún.</td></tr>';
+      document.getElementById("tabla-flujos-body").innerHTML = '<tr><td colspan="5" style="color:var(--text-muted); padding:16px;">Sin flujos calculados aún.</td></tr>';
+      document.getElementById("procedimiento-container").innerHTML = `
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num">!</div>
+            <div class="step-title">Esperando Ejecución</div>
+          </div>
+          <div class="step-content">Datos reiniciados. Agrega ramas y fuentes para iniciar.</div>
+        </div>
+      `;
+
+      const sb = document.getElementById("status-banner");
+      sb.className = "status-banner ok";
+      sb.innerHTML = "<span>✓ Sistema en blanco. Listo para una nueva red.</span>";
+
+      showToast("Sistema reiniciado por completo.", "info");
+    }
+
+    /* ==========================================================================
+       EXPORTACIÓN Y REPORTE
+       ========================================================================== */
+    function copiarReporte() {
+      if (!State.resultados) {
+        showToast("Primero calcula el circuito para generar el reporte.", "bad");
+        return;
+      }
+
+      const { N, Ybus, Zbus, V, flujos } = State.resultados;
+      const lines = [];
+
+      lines.push("================================================================================");
+      lines.push("           REPORTE DE ANÁLISIS NODAL DE REDES ELÉCTRICAS (Ybus & Zbus)           ");
+      lines.push("================================================================================\n");
+
+      lines.push(`• Cantidad de Nodos: ${N}`);
+      lines.push(`• Ramas de la Red: ${State.ramas.length}`);
+      lines.push(`• Fuentes Conectadas: ${State.fuentes.length}\n`);
+
+      lines.push("--------------------------------------------------------------------------------");
+      lines.push("1. MATRIZ DE ADMITANCIAS NODALES [Ybus] (pu)");
+      lines.push("--------------------------------------------------------------------------------");
+      for (let i = 0; i < N; i++) {
+        const row = Ybus[i].map(c => c.formatRect(4).padStart(22)).join("  ");
+        lines.push(`Fila ${i + 1}: [ ${row} ]`);
+      }
+
+      lines.push("\n--------------------------------------------------------------------------------");
+      lines.push("2. MATRIZ DE IMPEDANCIAS NODALES [Zbus = Ybus⁻¹] (pu)");
+      lines.push("--------------------------------------------------------------------------------");
+      for (let i = 0; i < N; i++) {
+        const row = Zbus[i].map(c => c.formatRect(4).padStart(22)).join("  ");
+        lines.push(`Fila ${i + 1}: [ ${row} ]`);
+      }
+
+      lines.push("\n--------------------------------------------------------------------------------");
+      lines.push("3. RESULTADOS DE VOLTAJES NODALES [V] = [Zbus] · [I]");
+      lines.push("--------------------------------------------------------------------------------");
+      lines.push("Nodo   | Tensión Rectangular (pu)       | Fasor Polar (|V| ∠ θ°)");
+      lines.push("-------+--------------------------------+------------------------");
+      for (let i = 0; i < N; i++) {
+        lines.push(`N${i + 1}     | ${V[i].formatRect(5).padEnd(30)} | ${V[i].formatPolar(5, 4)}`);
+      }
+
+      lines.push("\n--------------------------------------------------------------------------------");
+      lines.push("4. FLUJOS DE LÍNEA Y PÉRDIDAS (S = V · I*)");
+      lines.push("--------------------------------------------------------------------------------");
+      flujos.forEach(f => {
+        lines.push(`• Rama N${f.de} -> N${f.a}:`);
+        lines.push(`  I_${f.de}_${f.a} = ${f.Iij.formatPolar(4)} pu`);
+        lines.push(`  S_${f.de}_${f.a} = ${f.Sij.formatRect(4)} pu`);
+        lines.push(`  S_${f.a}_${f.de} = ${f.Sji.formatRect(4)} pu`);
+        lines.push(`  Pérdidas = ${f.Ploss.formatRect(4)} pu\n`);
+      });
+
+      lines.push("================================================================================");
+      lines.push("Generado con ANSEP Web App • Herramienta de Ingeniería Eléctrica");
+
+      const txt = lines.join("\n");
+
+      // Usar execCommand para evitar bloqueo de portapapeles en iframes
+      const textarea = document.createElement("textarea");
+      textarea.value = txt;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast("¡Reporte copiado al portapapeles con éxito!", "ok");
+      } catch (e) {
+        showToast("No se pudo copiar automáticamente.", "bad");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    /* ==========================================================================
+       INICIALIZACIÓN DE EVENTOS DEL DOM
+       ========================================================================== */
+    window.addEventListener("DOMContentLoaded", () => {
+      // Configuración inicial de selectores
+      actualizarSelectoresNodos();
+
+      // Eventos Nodos
+      document.getElementById("btn-aplicar-nodos").addEventListener("click", () => {
+        const val = parseInt(document.getElementById("num-nodos").value);
+        if (isNaN(val) || val < 1 || val > 30) {
+          showToast("Introduce un número de nodos entre 1 y 30.", "bad");
+          return;
+        }
+        State.numNodos = val;
+        actualizarSelectoresNodos();
+        showToast(`Red configurada a ${val} nodos.`, "ok");
+      });
+
+      document.getElementById("btn-reiniciar-red").addEventListener("click", limpiarTodo);
+
+      // Eventos Ramas
+      document.getElementById("btn-agregar-rama").addEventListener("click", agregarRama);
+      document.getElementById("btn-cancelar-edit-rama").addEventListener("click", () => {
+        State.editingRamaId = null;
+        document.getElementById("btn-cancelar-edit-rama").style.display = "none";
+        document.getElementById("btn-agregar-rama").innerText = "➕ Agregar Rama";
+        document.getElementById("rama-valor").value = "";
+      });
+
+      // Eventos Fuentes
+      document.getElementById("fuente-tipo").addEventListener("change", toggleCamposFuente);
+      document.getElementById("btn-agregar-fuente").addEventListener("click", agregarFuente);
+      document.getElementById("btn-cancelar-edit-fuente").addEventListener("click", () => {
+        State.editingFuenteId = null;
+        document.getElementById("btn-cancelar-edit-fuente").style.display = "none";
+        document.getElementById("btn-agregar-fuente").innerText = "➕ Agregar Fuente";
+        document.getElementById("fuente-i-valor").value = "";
+      });
+
+      // Evento Calcular
+      document.getElementById("btn-calcular").addEventListener("click", resolverSistema);
+
+      // Botones de presets
+      document.getElementById("btn-ejemplo-fig2").addEventListener("click", cargarEjemploFig2);
+      document.getElementById("btn-ejemplo-pizarron").addEventListener("click", cargarEjemploPizarron);
+      document.getElementById("btn-limpiar-todo").addEventListener("click", limpiarTodo);
+
+      // Botones de exportación
+      document.getElementById("btn-copiar").addEventListener("click", copiarReporte);
+      document.getElementById("btn-imprimir").addEventListener("click", () => window.print());
+
+      // Toggle Polar/Rectangular
+      document.getElementById("formato-num").addEventListener("change", (e) => {
+        State.formatoVisual = e.target.value;
+        if (State.resultados) renderResultados();
+      });
+
+      // Pestañas (Tabs)
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach(b => b.classList.remove("active"));
+          document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+
+          btn.classList.add("active");
+          const targetId = btn.getAttribute("data-tab");
+          document.getElementById(targetId).classList.add("active");
+        });
+      });
+
+      // Precargar automáticamente el Ejemplo de la Figura 2 al abrir la página
+      cargarEjemploFig2();
+    });
+  </script>
+</body>
+</html>
